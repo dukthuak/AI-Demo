@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess Game</title>
+    <style>
+        #chessboard {
+            display: grid;
+            grid-template-columns: repeat(8, 50px);
+            grid-template-rows: repeat(8, 50px);
+        }
+
+        .square {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            border: 1px solid #333;
+        }
+
+        .white {
+            background-color: #f0d9b5;
+        }
+
+        .black {
+            background-color: #b58863;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+<div id="chessboard"></div>
+
+<script>
+    let chessboard = document.getElementById("chessboard");
+    let board = [];
+    let currentPlayer = "white";
+    let selectedPiece = null;
+
+    // Chess pieces unicode
+    let pieces = {
+        "white": {
+            "king": "&#9812;",
+            "queen": "&#9813;",
+            "rook": "&#9814;",
+            "bishop": "&#9815;",
+            "knight": "&#9816;",
+            "pawn": "&#9817;"
+        },
+        "black": {
+            "king": "&#9818;",
+            "queen": "&#9819;",
+            "rook": "&#9820;",
+            "bishop": "&#9821;",
+            "knight": "&#9822;",
+            "pawn": "&#9823;"
+        }
+    };
+
+    // Initialize the chessboard
+    function initializeBoard() {
+        for (let row = 0; row < 8; row++) {
+            board[row] = [];
+            for (let col = 0; col < 8; col++) {
+                let square = document.createElement("div");
+                square.className = "square " + ((row + col) % 2 === 0 ? "white" : "black");
+                square.dataset.row = row;
+                square.dataset.col = col;
+                square.addEventListener("click", handleSquareClick);
+                chessboard.appendChild(square);
+                board[row][col] = null;
+            }
+        }
+
+        // Set up initial chess pieces
+        setInitialPieces();
+    }
+
+    // Set up initial chess pieces
+    function setInitialPieces() {
+        for (let col = 0; col < 8; col++) {
+            board[1][col] = pieces["black"]["pawn"];
+            board[6][col] = pieces["white"]["pawn"];
+        }
+
+        board[0][0] = pieces["black"]["rook"];
+        board[0][7] = pieces["black"]["rook"];
+        board[7][0] = pieces["white"]["rook"];
+        board[7][7] = pieces["white"]["rook"];
+
+        board[0][1] = pieces["black"]["knight"];
+        board[0][6] = pieces["black"]["knight"];
+        board[7][1] = pieces["white"]["knight"];
+        board[7][6] = pieces["white"]["knight"];
+
+        board[0][2] = pieces["black"]["bishop"];
+        board[0][5] = pieces["black"]["bishop"];
+        board[7][2] = pieces["white"]["bishop"];
+        board[7][5] = pieces["white"]["bishop"];
+
+        board[0][3] = pieces["black"]["queen"];
+        board[0][4] = pieces["black"]["king"];
+        board[7][3] = pieces["white"]["queen"];
+        board[7][4] = pieces["white"]["king"];
+    }
+
+    // Display chess pieces on the board
+    function displayPieces() {
+        for (let row = 0; row < 8; row++) {
+            for (let col = 0; col < 8; col++) {
+                let square = document.querySelector(`.square[data-row='${row}'][data-col='${col}']`);
+                square.innerHTML = board[row][col] ? board[row][col] : "";
+            }
+        }
+    }
+
+    // Handle square click event
+    function handleSquareClick(event) {
+        let clickedSquare = event.target;
+        let row = parseInt(clickedSquare.dataset.row);
+        let col = parseInt(clickedSquare.dataset.col);
+
+        if (selectedPiece === null) {
+            // Select the piece to move
+            if (board[row][col] && board[row][col][0] === currentPlayer.charAt(0)) {
+                selectedPiece = { row, col, piece: board[row][col] };
+            }
+        } else {
+            // Move the selected piece
+            if (isValidMove(selectedPiece, row, col)) {
+                board[selectedPiece.row][selectedPiece.col] = null;
+                board[row][col] = selectedPiece.piece;
+
+                // Switch player turn
+                currentPlayer = currentPlayer === "white" ? "black" : "white";
+            }
+
+            // Reset selected piece
+            selectedPiece = null;
+        }
+
+        // Update the display
+        displayPieces();
+    }
+
+    // Check if the move is valid
+    function isValidMove(piece, newRow, newCol) {
+        // Validate move for pawn
+        if (piece.piece.includes("pawn")) {
+            let direction = piece.piece.includes("white") ? 1 : -1;
+
+            // Move forward one square
+            if (newCol === piece.col && (newRow === piece.row + direction)) {
+                return true;
+            }
+
+            // Move forward two squares on the first move
+            if (piece.row === (piece.piece.includes("white") ? 1 : 6) && newCol === piece.col && (newRow === piece.row + 2 * direction)) {
+                return true;
+            }
+        }
+
+        // TODO: Implement valid move logic for other pieces
+
+        return false;
+    }
+
+    // Start the game
+    function startGame() {
+        initializeBoard();
+        displayPieces();
+    }
+
+    // Run the game
+    startGame();
+</script>
+
+</body>
+</html>
